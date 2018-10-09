@@ -39,7 +39,6 @@ bool match(char *first, char * second) {
   return false; 
 } 
 
-
 /**
  * Disponível em: https://stackoverflow.com/questions/1841758/how-to-remove-punctuation-from-a-string-in-c?noredirect=1&lq=1
  */
@@ -69,16 +68,22 @@ void remove_punct_and_make_lower_case(char *p) {
 
 int main(void) {
   /* declare a file pointer */
-  FILE    *infile;
-  char    *buffer;
-  long    numbytes;
+  FILE *infile;
+  char *buffer;
+  long numbytes;
+  char pattern[100];
+
+  printf("WILDCARD PATTERN MATCHING - SEQUENCIAL");
+  printf("\n\nDigite o padrão desejado: ");
+  scanf("%s", pattern);
+  printf("\n\n");
   
   /* open an existing file for reading */
   infile = fopen("texto.txt", "r");
   
   /* quit if the file does not exist */
   if(infile == NULL)
-      return 1;
+    return 1;
   
   /* Get the number of bytes */
   fseek(infile, 0L, SEEK_END);
@@ -86,7 +91,7 @@ int main(void) {
   
   /* reset the file position indicator to 
   the beginning of the file */
-  fseek(infile, 0L, SEEK_SET);	
+  fseek(infile, 0L, SEEK_SET);
   
   /* grab sufficient memory for the 
   buffer to hold the text */
@@ -94,38 +99,38 @@ int main(void) {
   
   /* memory error */
   if(buffer == NULL)
-      return 1;
+    return 1;
   
   /* copy all the text into the buffer */
   fread(buffer, sizeof(char), numbytes, infile);
   fclose(infile);
-  
-  /* confirm we have read the file by
-  outputing it to the console */
-  //printf("The file called texto.txt contains this text\n\n%s\n\n\n\n\n", buffer);
 
-  
-  //if (fgets(buffer, 10, stdin)!= NULL) {
-  //  printf("aaa %s.\n",buffer);
-  //}
-
-  printf("\n\n\n CHECKPOINT \n\n\n\n");
   char * line = strtok(strdup(buffer), "\n");
-  int i = 0;
-  while(i < 10) {
-    i++;
-    //printf("%s", line);
-    //while(line)
-    char * wordsOfLine = strtok(strdup(line), " ,.-");
-    while(wordsOfLine != NULL) {
-      printf("%s\n", wordsOfLine);
-      wordsOfLine  = strtok(NULL, " ,.-");
+  int countPatternFound = 0;
+  int linha = 1;
+  char * linhas;
+  while(line != NULL) {
+    // Transforma em lower case e remove caracteres especiais (exceto acentuação)
+    remove_punct_and_make_lower_case(line);
+    printf("%s\n", line);
+    bool result = match(pattern, line);
+    
+    if(result){
+      sprintf(linhas, "%d", linha);
+      //strcat(linhas, (char *) linha);
+      countPatternFound++;
     }
-    //printf("%s\n", wordsOfLine);
+
     line  = strtok(NULL, "\n");
+    linha++;
   }
   
   printf("\n\n\n\n");
+
+  printf("\nFIM DA EXECUÇÃO\n");
+
+  printf("O PADRÃO OCORREU NA(S) LINHA(S) %s\n", linhas);
+  
 
   /* free the memory we used for the buffer */
   free(buffer);
