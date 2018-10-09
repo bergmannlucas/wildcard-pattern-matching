@@ -1,0 +1,6 @@
+Pequeno texto para testes.
+Mais uma linha.
+Mais uma linha ainda.
+Final do texto.
+alô
+Obrigado.

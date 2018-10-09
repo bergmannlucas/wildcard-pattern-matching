@@ -7,7 +7,6 @@
 #include <stdlib.h>
 #include <stdbool.h> 
 #include <ctype.h>
-#include <string.h>
 
 /**
  * Disponível em: https://www.geeksforgeeks.org/wildcard-character-matching/
@@ -68,65 +67,39 @@ void remove_punct_and_make_lower_case(char *p) {
 }
 
 int main(void) {
-  /* declare a file pointer */
-  FILE    *infile;
-  char    *buffer;
-  long    numbytes;
-  
-  /* open an existing file for reading */
-  infile = fopen("texto.txt", "r");
-  
-  /* quit if the file does not exist */
-  if(infile == NULL)
-      return 1;
-  
-  /* Get the number of bytes */
-  fseek(infile, 0L, SEEK_END);
-  numbytes = ftell(infile);
-  
-  /* reset the file position indicator to 
-  the beginning of the file */
-  fseek(infile, 0L, SEEK_SET);	
-  
-  /* grab sufficient memory for the 
-  buffer to hold the text */
-  buffer = (char*)calloc(numbytes, sizeof(char));	
-  
-  /* memory error */
-  if(buffer == NULL)
-      return 1;
-  
-  /* copy all the text into the buffer */
-  fread(buffer, sizeof(char), numbytes, infile);
-  fclose(infile);
-  
-  /* confirm we have read the file by
-  outputing it to the console */
-  //printf("The file called texto.txt contains this text\n\n%s\n\n\n\n\n", buffer);
+  char x[1024];
+  char pattern[100];
 
-  
-  //if (fgets(buffer, 10, stdin)!= NULL) {
-  //  printf("aaa %s.\n",buffer);
-  //}
+  printf("WILDCARD PATTERN MATCHING - SEQUENCIAL");
+  printf("\n\nDigite o padrão desejado: ");
+  scanf("%s", pattern);
 
-  printf("\n\n\n CHECKPOINT \n\n\n\n");
-  char * line = strtok(strdup(buffer), "\n");
+  printf("\n\n");
+
+  FILE *arquivo;
+  arquivo = fopen("texto.txt", "r");
+
+  if (arquivo == NULL)
+    return EXIT_FAILURE;
+
   int i = 0;
-  while(i < 10) {
+  int countPatternFound = 0;
+  while(fscanf(arquivo, "%s", x) == 1) {
     i++;
-    //printf("%s", line);
-    //while(line)
-    char * wordsOfLine = strtok(strdup(line), " ,.-");
-    while(wordsOfLine != NULL) {
-      printf("%s\n", wordsOfLine);
-      wordsOfLine  = strtok(NULL, " ,.-");
+    // Transforma em lower case e remove caracteres especiais (exceto acentuação)
+    remove_punct_and_make_lower_case(x);
+    
+    bool result = match(pattern, x);
+    if(result){
+      countPatternFound++;
     }
-    //printf("%s\n", wordsOfLine);
-    line  = strtok(NULL, "\n");
+    printf("%d. Padrão: %s ; Palavra: %s -> Resultado: %s\n", i, pattern, x, result?"Yes": "No");
   }
-  
-  printf("\n\n\n\n");
 
-  /* free the memory we used for the buffer */
-  free(buffer);
+  fclose(arquivo);
+
+  printf("\nFIM DA EXECUÇÃO\n");
+  printf("O PADRÃO OCORREU %d VEZES\n", countPatternFound);
+  
+  return EXIT_SUCCESS;
 }
