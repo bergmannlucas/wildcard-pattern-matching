@@ -108,16 +108,20 @@ int main(void) {
   char * line = strtok(strdup(buffer), "\n");
   int countPatternFound = 0;
   int linha = 1;
-  char * linhas;
+  char linhas[5000000];
+  char linhaChar[100];
   while(line != NULL) {
     // Transforma em lower case e remove caracteres especiais (exceto acentuação)
     remove_punct_and_make_lower_case(line);
-    printf("%s\n", line);
+    //printf("%s\n", line);
     bool result = match(pattern, line);
     
     if(result){
-      sprintf(linhas, "%d", linha);
-      //strcat(linhas, (char *) linha);
+      sprintf(linhaChar, "%d", linha);
+      strcat(linhas, linhaChar);
+      strcat(linhas, ": ");
+      strcat(linhas, line);
+      strcat(linhas, "\n");
       countPatternFound++;
     }
 
@@ -126,11 +130,10 @@ int main(void) {
   }
   
   printf("\n\n\n\n");
-
-  printf("\nFIM DA EXECUÇÃO\n");
-
-  printf("O PADRÃO OCORREU NA(S) LINHA(S) %s\n", linhas);
-  
+  printf("\\/LINHAS QUE OCORREU O PADRÃO \\/\n%s", linhas);
+  printf("\n\n");
+  printf("/\\ LINHAS QUE OCORREU O PADRÃO /\\");
+  printf("\n\nFIM DA EXECUÇÃO\n");
 
   /* free the memory we used for the buffer */
   free(buffer);
