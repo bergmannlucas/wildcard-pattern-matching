@@ -106,26 +106,39 @@ int main(void) {
   fclose(infile);
 
   char * line = strtok(strdup(buffer), "\n");
-  int countPatternFound = 0;
-  int linha = 1;
+  
+  int numLinhas = 0;
+
+  while(line != NULL) {
+    numLinhas++;
+    line  = strtok(NULL, "\n");
+  }
+
+  printf("\nNúmero de linhas: %d\n", numLinhas);
+
   char linhas[5000000];
   char linhaChar[100];
-  while(line != NULL) {
+  int countPatternFound = 0;
+  int linha = 0;
+  char * lineTwo = strtok(strdup(buffer), "\n");
+  
+  int i;
+  for(i = 0; i < numLinhas; i++) {
     // Transforma em lower case e remove caracteres especiais (exceto acentuação)
-    remove_punct_and_make_lower_case(line);
+    remove_punct_and_make_lower_case(lineTwo);
     //printf("%s\n", line);
-    bool result = match(pattern, line);
+    bool result = match(pattern, lineTwo);
     
     if(result){
       sprintf(linhaChar, "%d", linha);
       strcat(linhas, linhaChar);
       strcat(linhas, ": ");
-      strcat(linhas, line);
+      strcat(linhas, lineTwo);
       strcat(linhas, "\n");
       countPatternFound++;
     }
 
-    line  = strtok(NULL, "\n");
+    lineTwo  = strtok(NULL, "\n");
     linha++;
   }
   
