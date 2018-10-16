@@ -1,17 +1,19 @@
-/**
- * Lucas Bergmann
- * Programação Paralela 2018/2
- */
+/*
+* Lucas Bergmann e Ricardo Somariva
+* Programação Paralela 2018/2
+*/
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h> 
+#include <stdbool.h>
 #include <ctype.h>
+#include <string.h>
+#include <time.h>
+#include <omp.h>
 
 /**
  * Disponível em: https://www.geeksforgeeks.org/wildcard-character-matching/
  */
- 
 // The main function that checks if two given strings 
 // match. The first string may contain wildcard characters 
 bool match(char *first, char * second) { 
@@ -37,7 +39,6 @@ bool match(char *first, char * second) {
     return match(first+1, second) || match(first, second+1); 
   return false; 
 } 
-
 
 /**
  * Disponível em: https://stackoverflow.com/questions/1841758/how-to-remove-punctuation-from-a-string-in-c?noredirect=1&lq=1
@@ -67,39 +68,92 @@ void remove_punct_and_make_lower_case(char *p) {
 }
 
 int main(void) {
-  char x[1024];
+  /* declare a file pointer */
+  FILE *infile;
+  char *buffer;
+  long numbytes;
   char pattern[100];
+  char *array[400000];
 
-  printf("WILDCARD PATTERN MATCHING - SEQUENCIAL");
-  printf("\n\nDigite o padrão desejado: ");
+  /* open an existing file for reading */
+  infile = fopen("texto.txt", "r");
+  
+  /* quit if the file does not exist */
+  if(infile == NULL)
+    return 1;
+  
+  /* Get the number of bytes */
+  fseek(infile, 0L, SEEK_END);
+  numbytes = ftell(infile);
+  
+  /* reset the file position indicator to 
+  the beginning of the file */
+  fseek(infile, 0L, SEEK_SET);
+  
+  /* grab sufficient memory for the 
+  buffer to hold the text */
+  buffer = (char*)calloc(numbytes, sizeof(char));	
+  
+  /* memory error */
+  if(buffer == NULL)
+    return 1;
+
+  /* copy all the text into the buffer */
+  fread(buffer, sizeof(char), numbytes, infile);
+  fclose(infile);
+
+  printf("WILDCARD PATTERN MATCHING");
+  printf("\n\n\nDigite o padrão desejado: ");
   scanf("%s", pattern);
-
   printf("\n\n");
 
-  FILE *arquivo;
-  arquivo = fopen("texto.txt", "r");
+  char * line = strtok(strdup(buffer), "\n");
+  int numLines = 0;
 
-  if (arquivo == NULL)
-    return EXIT_FAILURE;
 
-  int i = 0;
-  int countPatternFound = 0;
-  while(fscanf(arquivo, "%s", x) == 1) {
-    i++;
-    // Transforma em lower case e remove caracteres especiais (exceto acentuação)
-    remove_punct_and_make_lower_case(x);
-    
-    bool result = match(pattern, x);
-    if(result){
-      countPatternFound++;
-    }
-    printf("%d. Padrão: %s ; Palavra: %s -> Resultado: %s\n", i, pattern, x, result?"Yes": "No");
+  // Este loop serve p/ popular o array e contar o numero de linhas do texto p/ utilizar no for paralelizado
+  while(line != NULL) {
+    remove_punct_and_make_lower_case(line); 
+    array[numLines] = line;
+    line  = strtok(NULL, "\n");
+    numLines++;
   }
 
-  fclose(arquivo);
+  // Início da execução
+  clock_t timeStart = clock(); 
 
-  printf("\nFIM DA EXECUÇÃO\n");
-  printf("O PADRÃO OCORREU %d VEZES\n", countPatternFound);
+  // Pode-se utilizar este comando para setar o numero de threads
+  // ao invés de variáveis de ambiente
+  //omp_set_num_threads(4);
+
+  printf("LINHAS QUE OCORREU O PADRÃO\n");
+
+  int numPatternFound = 0;
+  char linhaChar[100];
+  int i = 0;
+  #pragma omp parallel
+  {
+    #pragma omp for reduction(+:numPatternFound)
+    for(int i = 0; i < numLines; i++) {
+      if(match(pattern, array[i])) {
+        printf("%d: %s\n", i, array[i]);
+        numPatternFound++;
+      }
+    }
+  }
+
+  // Fim da execução
+  clock_t timeFinish = clock();
   
-  return EXIT_SUCCESS;
+  // Calcula a diferença de tempo
+  double executionTime = (double)(timeFinish - timeStart) / CLOCKS_PER_SEC;
+
+  printf("\n\n");
+  printf("TEMPO DE EXECUÇÃO: %lf\n", executionTime);
+  printf("O PADRÃO OCORREU %d VEZES\n", numPatternFound);
+  printf("\nFIM DA EXECUÇÃO\n");
+
+
+  free(buffer);
+  return 0;
 }
